@@ -7,7 +7,8 @@ async def prompt_user(question: str) -> str:
     return await loop.run_in_executor(None, input, question)
 
 
-async def chat(ip: str = 'localhost', port: str = '11434') -> None:
+async def chat(url: str = 'http://localhost:11434/v1',
+               model: str = 'gpt-oss:20b') -> None:
 
     from openai import AsyncOpenAI
     from agents import (Agent, Runner,
@@ -17,7 +18,7 @@ async def chat(ip: str = 'localhost', port: str = '11434') -> None:
 
     openai_client = AsyncOpenAI(
         api_key="local",
-        base_url=f"http://{ip}:{port}/v1",
+        base_url=url,
     )
 
     set_tracing_disabled(True)
@@ -27,7 +28,7 @@ async def chat(ip: str = 'localhost', port: str = '11434') -> None:
     agent = Agent(
         name="Simple Chat Agent",
         instructions="You are a helpful assistant.",
-        model="gpt-oss:20b",
+        model=model,
     )
 
     while True:
@@ -55,7 +56,10 @@ if __name__ == "__main__":
     from dotenv import load_dotenv
 
     load_dotenv()
-    ip = os.environ.get('ip', 'localhost')
-    print(f"Connecting to {ip}")
+    url = os.environ.get('url', 'http://localhost:11434/v1')
+    model = os.environ.get('model', 'gpt-oss:20b')
+    print(f"URL = {url}")
+    print(f"Model = {model}")
+    print('Input "quit" or "exit" to terminate dialog')
 
-    asyncio.run(chat(ip))
+    asyncio.run(chat(url, model))
