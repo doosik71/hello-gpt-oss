@@ -26,11 +26,10 @@
             width: 90%;
             max-width: 900px;
             height: 95vh;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
             border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 5px 10px rgba(0, 0, 0, 0.05);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -107,7 +106,7 @@
             padding: 12px 16px;
             border-radius: 18px;
             word-wrap: break-word;
-            white-space: pre-wrap;
+            /* white-space: pre-wrap; */
             font-size: 0.95em;
             line-height: 1.4;
         }
@@ -143,11 +142,69 @@
         .ai .message-avatar {
             background: linear-gradient(135deg, #48bb78, #38a169);
         }
-        
+
         .message-avatar svg {
             width: 24px;
             height: 24px;
             stroke: white;
+        }
+
+        .message-content h1,
+        .message-content h2,
+        .message-content h3,
+        .message-content h4,
+        .message-content h5 {
+            margin-top: 1em;
+            margin-bottom: 1em;
+            color: #4299e1;
+        }
+
+        .message-content ul,
+        .message-content ol {
+            padding-left: 1em;
+            margin-top: 0.2em;
+            margin-bottom: 0.2em;
+        }
+
+        .message-content table {
+            width: 100%;
+            border-spacing: 0;
+            margin-top: 1em;
+            margin-bottom: 1em;
+            background-color: white;
+        }
+
+        .message-content table th {
+            border-bottom: 1px solid gray;
+            padding: 0.2em;
+        }
+
+        .message-content table td {
+            border-bottom: 1px solid lightgray;
+            padding: 0.2em;
+        }
+
+        .message-content hr,
+        .message-content pre,
+        .message-content blockquote {
+            margin-top: 1em;
+            margin-bottom: 1em;
+        }
+
+        .message-content p {
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+        }
+
+        .message-content hr {
+            border: 0;
+            height: 1px;
+            background-image: linear-gradient(to right, #f5f7fa, #4299e1, #f5f7fa);
+        }
+
+        .message-content li {
+            margin-top: 0.2em;
+            margin-bottom: 0.2em;
         }
 
         .chat-input {
@@ -262,6 +319,7 @@
             border: 1px solid #feb2b2 !important;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
@@ -274,7 +332,19 @@
         <div class="chat-messages" id="chatMessages">
             <div class="message ai">
                 <div class="message-avatar">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                        <rect x="9" y="9" width="6" height="6"></rect>
+                        <line x1="9" y1="1" x2="9" y2="4"></line>
+                        <line x1="15" y1="1" x2="15" y2="4"></line>
+                        <line x1="9" y1="20" x2="9" y2="23"></line>
+                        <line x1="15" y1="20" x2="15" y2="23"></line>
+                        <line x1="20" y1="9" x2="23" y2="9"></line>
+                        <line x1="20" y1="14" x2="23" y2="14"></line>
+                        <line x1="1" y1="9" x2="4" y2="9"></line>
+                        <line x1="1" y1="14" x2="4" y2="14"></line>
+                    </svg>
                 </div>
                 <div class="message-content">안녕하세요! AI 연구를 도와드리는 어시스턴트입니다. 무엇을 도와드릴까요?</div>
             </div>
@@ -293,6 +363,7 @@
             constructor() {
                 this.ws = null;
                 this.currentAiMessage = null;
+                this.currentAiMessageContent = '';
                 this.isConnected = false;
                 this.initializeElements();
                 this.setupEventListeners();
@@ -427,6 +498,7 @@
 
                 this.chatMessages.appendChild(messageDiv);
                 this.currentAiMessage = messageDiv;
+                this.currentAiMessageContent = '';
                 this.scrollToBottom();
             }
 
@@ -435,7 +507,6 @@
 
                 let contentDiv = this.currentAiMessage.querySelector('.message-content');
                 if (!contentDiv) {
-                    // 타이핑 인디케이터 제거하고 실제 콘텐츠 div 생성
                     const typingIndicator = this.currentAiMessage.querySelector('.typing-indicator');
                     if (typingIndicator) {
                         typingIndicator.remove();
@@ -446,14 +517,22 @@
                     this.currentAiMessage.appendChild(contentDiv);
                 }
 
-                contentDiv.textContent += content;
+                this.currentAiMessageContent += content;
+                contentDiv.innerHTML = marked.parse(this.currentAiMessageContent);
                 this.scrollToBottom();
             }
 
 
 
             endAiResponse() {
+                if (this.currentAiMessage) {
+                    let contentDiv = this.currentAiMessage.querySelector('.message-content');
+                    if (contentDiv) {
+                        contentDiv.innerHTML = marked.parse(this.currentAiMessageContent);
+                    }
+                }
                 this.currentAiMessage = null;
+                this.currentAiMessageContent = '';
             }
 
             addErrorMessage(content) {
@@ -503,6 +582,8 @@
             scrollToBottom() {
                 this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
             }
+
+
 
             escapeHtml(text) {
                 const div = document.createElement('div');
