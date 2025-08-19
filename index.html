@@ -24,7 +24,7 @@
 
         .chat-container {
             width: 90%;
-            max-width: 900px;
+            max-width: 1200px;
             height: 95vh;
             background: #ffffff;
             border: 1px solid #e2e8f0;
@@ -126,7 +126,6 @@
             padding: 12px 16px;
             border-radius: 18px;
             word-wrap: break-word;
-            /* white-space: pre-wrap; */
             font-size: 0.95em;
             line-height: 1.4;
         }
@@ -135,6 +134,7 @@
             background: linear-gradient(135deg, #4299e1, #3182ce);
             color: white;
             border-bottom-right-radius: 6px;
+            white-space: pre-wrap;
         }
 
         .ai .message-content {
@@ -195,6 +195,7 @@
         }
 
         .message-content table th {
+            border-top: 1px solid gray;
             border-bottom: 1px solid gray;
             padding: 0.2em;
         }
@@ -204,11 +205,17 @@
             padding: 0.2em;
         }
 
-        .message-content hr,
         .message-content pre,
         .message-content blockquote {
             margin-top: 1em;
             margin-bottom: 1em;
+        }
+
+        .message-content pre {
+            padding: 0.5em;
+            border: 1px solid lightgray;
+            border-radius: 0.5em;
+            box-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
         }
 
         .message-content p {
@@ -218,8 +225,13 @@
 
         .message-content hr {
             border: 0;
-            height: 1px;
-            background-image: linear-gradient(to right, #f5f7fa, #4299e1, #f5f7fa);
+            width: 3em;
+            height: 8px;
+            margin: 1em auto;
+            background-image:
+                radial-gradient(circle at 20% 50%, lightgray 0%, lightgray 2px, transparent 3px),
+                radial-gradient(circle at 50% 50%, lightgray 0%, lightgray 2px, transparent 3px),
+                radial-gradient(circle at 80% 50%, lightgray 0%, lightgray 2px, transparent 3px);
         }
 
         .message-content li {
@@ -348,8 +360,12 @@
             <h1>GTP OSS</h1>
             <p>의료IT융합연구실</p>
             <div class="connection-status" id="connectionStatus"></div>
-            <button id="clearChatButton" class="clear-chat-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <button id="clearChatButton" type="button" title="Clear" class="clear-chat-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
             </button>
         </div>
         <div class="chat-messages" id="chatMessages">
