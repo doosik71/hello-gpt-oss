@@ -561,7 +561,7 @@
 
                 this.currentAiMessageContent += content;
                 contentDiv.innerHTML = marked.parse(this.currentAiMessageContent);
-                this.scrollToBottom();
+                // this.scrollToBottom(); // 답변 수신 중에는 자동 스크롤을 하지 않는다.
             }
 
             endAiResponse() {
@@ -581,6 +581,9 @@
                 const messages = this.chatMessages.children;
                 while (messages.length > 1) {
                     messages[1].remove();
+                }
+                if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                    this.ws.send(JSON.stringify({ type: 'clear_chat' }));
                 }
             }
 

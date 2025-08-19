@@ -15,6 +15,7 @@ class ChatWebApp:
         self.openai_client = None
         self.agent = None
         self.active_tasks = {}
+        self.chat_histories = {}
         self.setup_routes()
         self.initialize_agent()
 
@@ -61,6 +62,7 @@ class ChatWebApp:
         async def websocket_endpoint(websocket: WebSocket):
             await websocket.accept()
             self.active_tasks[websocket] = None
+            self.chat_histories[websocket] = []
 
             try:
                 while True:
@@ -69,12 +71,13 @@ class ChatWebApp:
 
                     if data.get("type") == "user_message":
                         user_input = data.get("content", "").strip()
+                        history = self.chat_histories.get(websocket, [])
                         
                         if self.active_tasks.get(websocket):
                             self.active_tasks[websocket].cancel()
 
                         task = asyncio.create_task(
-                            self.stream_ai_response(websocket, user_input)
+                            self.stream_ai_response(websocket, user_input, history)
                         )
                         self.active_tasks[websocket] = task
 
@@ -82,6 +85,10 @@ class ChatWebApp:
                         if self.active_tasks.get(websocket):
                             self.active_tasks[websocket].cancel()
                             self.active_tasks[websocket] = None
+                    
+                    elif data.get("type") == "clear_chat":
+                        if websocket in self.chat_histories:
+                            self.chat_histories[websocket] = []
 
             except WebSocketDisconnect:
                 print("클라이언트 연결 종료")
@@ -89,6 +96,8 @@ class ChatWebApp:
                     self.active_tasks[websocket].cancel()
                 if websocket in self.active_tasks:
                     del self.active_tasks[websocket]
+                if websocket in self.chat_histories:
+                    del self.chat_histories[websocket]
             except Exception as e:
                 print(f"WebSocket 오류: {e}")
                 try:
@@ -99,7 +108,7 @@ class ChatWebApp:
                 except Exception:
                     pass
 
-    async def stream_ai_response(self, websocket: WebSocket, user_input: str):
+    async def stream_ai_response(self, websocket: WebSocket, user_input: str, history: list):
         """AI 응답을 스트리밍으로 전송"""
         if not self.agent:
             await websocket.send_text(json.dumps({
@@ -115,7 +124,10 @@ class ChatWebApp:
                 "type": "ai_response_start"
             }))
 
-            result = Runner.run_streamed(self.agent, user_input)
+            history.append({"role": "user", "content": user_input})
+
+            result = Runner.run_streamed(self.agent, history)
+            full_response = ""
 
             async for event in result.stream_events():
                 if event.type == "raw_response_event":
@@ -123,10 +135,13 @@ class ChatWebApp:
                     if data.type == "response.output_text.delta":
                         delta = getattr(data, "delta", "")
                         if delta:
+                            full_response += delta
                             await websocket.send_text(json.dumps({
                                 "type": "ai_response_delta",
                                 "content": delta
                             }))
+            
+            history.append({"role": "assistant", "content": full_response})
 
             await websocket.send_text(json.dumps({
                 "type": "ai_response_end"
@@ -134,6 +149,7 @@ class ChatWebApp:
 
         except asyncio.CancelledError:
             print("AI 응답 스트리밍이 중단되었습니다.")
+            history.append({"role": "assistant", "content": full_response})
             await websocket.send_text(json.dumps({
                 "type": "ai_response_end"
             }))
