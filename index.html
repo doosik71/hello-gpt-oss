@@ -71,6 +71,26 @@
             box-shadow: 0 0 10px rgba(245, 101, 101, 0.5);
         }
 
+        .clear-chat-button {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .clear-chat-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
         .chat-messages {
             flex: 1;
             overflow-y: auto;
@@ -328,6 +348,9 @@
             <h1>GTP OSS</h1>
             <p>의료IT융합연구실</p>
             <div class="connection-status" id="connectionStatus"></div>
+            <button id="clearChatButton" class="clear-chat-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
         </div>
         <div class="chat-messages" id="chatMessages">
             <div class="message ai">
@@ -346,7 +369,7 @@
                         <line x1="1" y1="14" x2="4" y2="14"></line>
                     </svg>
                 </div>
-                <div class="message-content">안녕하세요! AI 연구를 도와드리는 어시스턴트입니다. 무엇을 도와드릴까요?</div>
+                <div class="message-content">안녕하세요! 저는 AI 연구와 일상 대화를 모두 도와드릴 수 있는 어시스턴트입니다. 무엇을 도와드릴까요?</div>
             </div>
         </div>
 
@@ -365,6 +388,7 @@
                 this.currentAiMessage = null;
                 this.currentAiMessageContent = '';
                 this.isConnected = false;
+                this.isAiResponding = false;
                 this.initializeElements();
                 this.setupEventListeners();
                 this.connect();
@@ -375,15 +399,17 @@
                 this.messageInput = document.getElementById('messageInput');
                 this.sendButton = document.getElementById('sendButton');
                 this.connectionStatus = document.getElementById('connectionStatus');
+                this.clearChatButton = document.getElementById('clearChatButton');
             }
 
             setupEventListeners() {
-                this.sendButton.addEventListener('click', () => this.sendMessage());
+                this.sendButton.addEventListener('click', () => this.handleSendButtonClick());
+                this.clearChatButton.addEventListener('click', () => this.clearChat());
 
                 this.messageInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
-                        this.sendMessage();
+                        this.handleSendButtonClick();
                     }
                 });
 
@@ -446,6 +472,14 @@
                 }
             }
 
+            handleSendButtonClick() {
+                if (this.isAiResponding) {
+                    this.stopAiResponse();
+                } else {
+                    this.sendMessage();
+                }
+            }
+
             sendMessage() {
                 const message = this.messageInput.value.trim();
                 if (!message || !this.isConnected) return;
@@ -460,6 +494,12 @@
                 this.messageInput.value = '';
                 this.adjustTextareaHeight();
                 this.updateSendButton();
+            }
+
+            stopAiResponse() {
+                if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+                this.ws.send(JSON.stringify({ type: 'user_request_stop' }));
+                this.endAiResponse();
             }
 
             addUserMessage(content) {
@@ -499,6 +539,8 @@
                 this.chatMessages.appendChild(messageDiv);
                 this.currentAiMessage = messageDiv;
                 this.currentAiMessageContent = '';
+                this.isAiResponding = true;
+                this.updateSendButton();
                 this.scrollToBottom();
             }
 
@@ -522,8 +564,6 @@
                 this.scrollToBottom();
             }
 
-
-
             endAiResponse() {
                 if (this.currentAiMessage) {
                     let contentDiv = this.currentAiMessage.querySelector('.message-content');
@@ -533,6 +573,15 @@
                 }
                 this.currentAiMessage = null;
                 this.currentAiMessageContent = '';
+                this.isAiResponding = false;
+                this.updateSendButton();
+            }
+
+            clearChat() {
+                const messages = this.chatMessages.children;
+                while (messages.length > 1) {
+                    messages[1].remove();
+                }
             }
 
             addErrorMessage(content) {
@@ -570,8 +619,14 @@
             }
 
             updateSendButton() {
-                const hasText = this.messageInput.value.trim().length > 0;
-                this.sendButton.disabled = !hasText || !this.isConnected;
+                if (this.isAiResponding) {
+                    this.sendButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>';
+                    this.sendButton.disabled = false;
+                } else {
+                    this.sendButton.innerHTML = '➤';
+                    const hasText = this.messageInput.value.trim().length > 0;
+                    this.sendButton.disabled = !hasText || !this.isConnected;
+                }
             }
 
             adjustTextareaHeight() {
@@ -582,8 +637,6 @@
             scrollToBottom() {
                 this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
             }
-
-
 
             escapeHtml(text) {
                 const div = document.createElement('div');

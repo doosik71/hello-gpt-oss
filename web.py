@@ -1,5 +1,6 @@
 import os
 import json
+import asyncio
 from dotenv import load_dotenv
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
@@ -13,6 +14,7 @@ class ChatWebApp:
         self.model = model
         self.openai_client = None
         self.agent = None
+        self.active_tasks = {}
         self.setup_routes()
         self.initialize_agent()
 
@@ -36,7 +38,7 @@ class ChatWebApp:
 
             self.agent = Agent(
                 name="Research Chat Agent",
-                instructions="You are a helpful AI research assistant. Provide detailed, technical answers suitable for AI and deep learning researchers.",
+                instructions="You are a versatile AI assistant who provides researcher-level technical answers for expert queries while maintaining a warm, natural tone for everyday conversations.",
                 model=self.model,
             )
             print(f"✅ Agent initialized with model: {self.model}")
@@ -58,37 +60,44 @@ class ChatWebApp:
         @self.app.websocket("/ws")
         async def websocket_endpoint(websocket: WebSocket):
             await websocket.accept()
+            self.active_tasks[websocket] = None
 
             try:
                 while True:
-                    # 클라이언트로부터 메시지 수신
                     message = await websocket.receive_text()
                     data = json.loads(message)
 
                     if data.get("type") == "user_message":
                         user_input = data.get("content", "").strip()
+                        
+                        if self.active_tasks.get(websocket):
+                            self.active_tasks[websocket].cancel()
 
-                        if user_input.lower() in ("exit", "quit"):
-                            await websocket.send_text(json.dumps({
-                                "type": "system_message",
-                                "content": "채팅을 종료합니다."
-                            }))
-                            break
+                        task = asyncio.create_task(
+                            self.stream_ai_response(websocket, user_input)
+                        )
+                        self.active_tasks[websocket] = task
 
-                        # AI 응답 스트리밍
-                        await self.stream_ai_response(websocket, user_input)
-
-                    elif data.get("type") == "ping":
-                        await websocket.send_text(json.dumps({"type": "pong"}))
+                    elif data.get("type") == "user_request_stop":
+                        if self.active_tasks.get(websocket):
+                            self.active_tasks[websocket].cancel()
+                            self.active_tasks[websocket] = None
 
             except WebSocketDisconnect:
                 print("클라이언트 연결 종료")
+                if self.active_tasks.get(websocket):
+                    self.active_tasks[websocket].cancel()
+                if websocket in self.active_tasks:
+                    del self.active_tasks[websocket]
             except Exception as e:
                 print(f"WebSocket 오류: {e}")
-                await websocket.send_text(json.dumps({
-                    "type": "error",
-                    "content": f"오류 발생: {str(e)}"
-                }))
+                try:
+                    await websocket.send_text(json.dumps({
+                        "type": "error",
+                        "content": f"오류 발생: {str(e)}"
+                    }))
+                except Exception:
+                    pass
 
     async def stream_ai_response(self, websocket: WebSocket, user_input: str):
         """AI 응답을 스트리밍으로 전송"""
@@ -102,7 +111,6 @@ class ChatWebApp:
         try:
             from agents import Runner
 
-            # 응답 시작 알림
             await websocket.send_text(json.dumps({
                 "type": "ai_response_start"
             }))
@@ -120,16 +128,23 @@ class ChatWebApp:
                                 "content": delta
                             }))
 
-            # 응답 완료 알림
             await websocket.send_text(json.dumps({
                 "type": "ai_response_end"
             }))
 
+        except asyncio.CancelledError:
+            print("AI 응답 스트리밍이 중단되었습니다.")
+            await websocket.send_text(json.dumps({
+                "type": "ai_response_end"
+            }))
         except Exception as e:
             await websocket.send_text(json.dumps({
                 "type": "error",
                 "content": f"AI 응답 생성 중 오류: {str(e)}"
             }))
+        finally:
+            if websocket in self.active_tasks:
+                self.active_tasks[websocket] = None
 
     def get_html_content(self):
         """HTML 콘텐츠 반환"""
