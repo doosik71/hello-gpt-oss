@@ -17,22 +17,175 @@
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             height: 100vh;
             display: flex;
-            justify-content: center;
-            align-items: center;
             overflow: hidden;
         }
 
+        .main-container {
+            display: flex;
+            width: 100%;
+            max-width: 100%;
+            height: 100vh;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #prompt-sidebar {
+            width: 280px;
+            background: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        #markdown-sidebar {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 350px;
+            height: 100%;
+            background: #edf2f7;
+            border-left: 1px solid #e2e8f0;
+            z-index: 100;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        #markdown-sidebar.visible {
+            transform: translateX(0);
+        }
+
+        #close-markdown-sidebar {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            color: #718096;
+        }
+
+        #markdown-content {
+            flex: 1;
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: monospace;
+            margin-top: 40px;
+            border: none;
+            resize: none;
+            outline: none;
+        }
+
         .chat-container {
-            width: 90%;
-            max-width: 1200px;
-            height: 95vh;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 5px 10px rgba(0, 0, 0, 0.05);
+            flex: 1;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            transition: margin-right 0.3s ease;
+        }
+
+        .main-container.right-sidebar-visible .chat-container {
+            margin-right: 350px;
+        }
+
+        #prompt-sidebar h2 {
+            font-size: 1.2em;
+            color: #2d3748;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        #prompt-list {
+            flex: 1;
+            overflow-y: auto;
+            list-style: none;
+        }
+
+        .prompt-item {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            position: relative;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+        }
+
+        .prompt-item:hover {
+            background-color: #edf2f7;
+        }
+
+        .prompt-item-title {
+            font-weight: 600;
+            color: #4a5568;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-right: 50px;
+        }
+
+        .prompt-item-buttons {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .prompt-item:hover .prompt-item-buttons {
+            opacity: 1;
+        }
+
+        .prompt-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .prompt-btn:hover {
+            background-color: #cbd5e0;
+        }
+
+        #add-prompt-button {
+            margin-top: 15px;
+            padding: 10px;
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 600;
+        }
+
+        #add-prompt-button:hover {
+            opacity: 0.9;
         }
 
         .chat-header {
@@ -128,6 +281,26 @@
             word-wrap: break-word;
             font-size: 0.95em;
             line-height: 1.4;
+            position: relative;
+        }
+
+        .copy-markdown-btn {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 3px 6px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .message.ai:hover .copy-markdown-btn {
+            opacity: 1;
         }
 
         .user .message-content {
@@ -350,54 +523,349 @@
             color: #c53030 !important;
             border: 1px solid #feb2b2 !important;
         }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            height: 90%;
+            max-width: 800px;
+            max-height: 800px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+
+        .modal-content .form-group {
+            margin-bottom: 15px;
+        }
+
+        .modal-content label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .modal-content input,
+        .modal-content textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 0.95em;
+        }
+
+        .modal-content textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        #prompt-save-button {
+            background: #4299e1;
+            color: white;
+        }
+
+        #prompt-cancel-button {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
+        @media print {
+
+            *,
+            *::before,
+            *::after {
+                /* Disable transitions and shadows for printing */
+                transition: none !important;
+                box-shadow: none !important;
+                text-shadow: none !important;
+                animation: none !important;
+            }
+
+            #prompt-sidebar,
+            .chat-header,
+            .chat-input,
+            #markdown-sidebar,
+            .copy-markdown-btn {
+                display: none;
+            }
+
+            body,
+            .main-container,
+            .chat-container {
+                height: auto;
+                overflow: visible;
+                background: none;
+            }
+
+            .chat-messages {
+                height: auto;
+                overflow-y: visible;
+                flex: none;
+            }
+
+            .message {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <h1>GTP OSS</h1>
-            <p>의료IT융합연구실</p>
-            <div class="connection-status" id="connectionStatus"></div>
-            <button id="clearChatButton" type="button" title="Clear" class="clear-chat-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-            </button>
+    <div class="main-container" id="mainContainer">
+        <div id="prompt-sidebar">
+            <h2>프롬프트</h2>
+            <ul id="prompt-list"></ul>
+            <button id="add-prompt-button">+ 새 프롬프트 추가</button>
         </div>
-        <div class="chat-messages" id="chatMessages">
-            <div class="message ai">
-                <div class="message-avatar">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-                        <rect x="9" y="9" width="6" height="6"></rect>
-                        <line x1="9" y1="1" x2="9" y2="4"></line>
-                        <line x1="15" y1="1" x2="15" y2="4"></line>
-                        <line x1="9" y1="20" x2="9" y2="23"></line>
-                        <line x1="15" y1="20" x2="15" y2="23"></line>
-                        <line x1="20" y1="9" x2="23" y2="9"></line>
-                        <line x1="20" y1="14" x2="23" y2="14"></line>
-                        <line x1="1" y1="9" x2="4" y2="9"></line>
-                        <line x1="1" y1="14" x2="4" y2="14"></line>
+        <div class="chat-container">
+            <div class="chat-header">
+                <h1>GTP OSS</h1>
+                <p>의료IT융합연구실</p>
+                <div class="connection-status" id="connectionStatus"></div>
+                <button id="clearChatButton" type="button" title="Clear" class="clear-chat-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
+                </button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai">
+                    <div class="message-avatar">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                            <rect x="9" y="9" width="6" height="6"></rect>
+                            <line x1="9" y1="1" x2="9" y2="4"></line>
+                            <line x1="15" y1="1" x2="15" y2="4"></line>
+                            <line x1="9" y1="20" x2="9" y2="23"></line>
+                            <line x1="15" y1="20" x2="15" y2="23"></line>
+                            <line x1="20" y1="9" x2="23" y2="9"></line>
+                            <line x1="20" y1="14" x2="23" y2="14"></line>
+                            <line x1="1" y1="9" x2="4" y2="9"></line>
+                            <line x1="1" y1="14" x2="4" y2="14"></line>
+                        </svg>
+                    </div>
+                    <div class="message-content">안녕하세요! 저는 AI 연구와 일상 대화를 모두 도와드릴 수 있는 어시스턴트입니다. 무엇을 도와드릴까요?</div>
                 </div>
-                <div class="message-content">안녕하세요! 저는 AI 연구와 일상 대화를 모두 도와드릴 수 있는 어시스턴트입니다. 무엇을 도와드릴까요?</div>
+            </div>
+
+            <div class="chat-input">
+                <div class="input-group">
+                    <textarea id="messageInput" placeholder="메시지를 입력하세요..." rows="1"></textarea>
+                    <button id="sendButton" disabled>➤</button>
+                </div>
             </div>
         </div>
+        <div id="markdown-sidebar">
+            <button id="close-markdown-sidebar" title="Close">×</button>
+            <textarea id="markdown-content" title="Markdown" readonly></textarea>
+        </div>
+    </div>
 
-        <div class="chat-input">
-            <div class="input-group">
-                <textarea id="messageInput" placeholder="메시지를 입력하세요..." rows="1"></textarea>
-                <button id="sendButton" disabled>➤</button>
+    <div id="prompt-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="prompt-modal-title">새 프롬프트</h3>
+            <div class="form-group">
+                <label for="prompt-title-input">제목</label>
+                <input type="text" id="prompt-title-input" placeholder="프롬프트 제목">
+            </div>
+            <div class="form-group">
+                <label for="prompt-text-input">내용</label>
+                <textarea id="prompt-text-input" placeholder="프롬프트 내용"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button id="prompt-cancel-button">취소</button>
+                <button id="prompt-save-button">저장</button>
             </div>
         </div>
     </div>
 
     <script>
+        class PromptManager {
+            constructor(chatApp) {
+                this.chatApp = chatApp;
+                this.prompts = [];
+                this.editingPromptId = null;
+                this.initializeElements();
+                this.setupEventListeners();
+                this.loadPrompts();
+            }
+
+            initializeElements() {
+                this.promptList = document.getElementById('prompt-list');
+                this.addPromptButton = document.getElementById('add-prompt-button');
+                this.modal = document.getElementById('prompt-modal');
+                this.modalTitle = document.getElementById('prompt-modal-title');
+                this.titleInput = document.getElementById('prompt-title-input');
+                this.textInput = document.getElementById('prompt-text-input');
+                this.saveButton = document.getElementById('prompt-save-button');
+                this.cancelButton = document.getElementById('prompt-cancel-button');
+            }
+
+            setupEventListeners() {
+                this.addPromptButton.addEventListener('click', () => this.openModal());
+                this.saveButton.addEventListener('click', () => this.savePrompt());
+                this.cancelButton.addEventListener('click', () => this.closeModal());
+                this.modal.addEventListener('click', (e) => {
+                    if (e.target === this.modal) {
+                        this.closeModal();
+                    }
+                });
+            }
+
+            loadPrompts() {
+                const storedPrompts = localStorage.getItem('userPrompts');
+                this.prompts = storedPrompts ? JSON.parse(storedPrompts) : [];
+                this.renderPrompts();
+            }
+
+            savePromptsToStorage() {
+                localStorage.setItem('userPrompts', JSON.stringify(this.prompts));
+            }
+
+            renderPrompts() {
+                this.promptList.innerHTML = '';
+                this.prompts.forEach(prompt => {
+                    const li = document.createElement('li');
+                    li.className = 'prompt-item';
+                    li.dataset.id = prompt.id;
+
+                    li.innerHTML = `
+                        <div class="prompt-item-title" title="${this.chatApp.escapeHtml(prompt.title)}">${this.chatApp.escapeHtml(prompt.title)}</div>
+                        <div class="prompt-item-buttons">
+                            <button class="prompt-btn edit-prompt-btn" title="수정">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            </button>
+                            <button class="prompt-btn delete-prompt-btn" title="삭제">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            </button>
+                        </div>
+                    `;
+
+                    li.querySelector('.prompt-item-title').addEventListener('click', () => this.applyPrompt(prompt.id));
+                    li.querySelector('.edit-prompt-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.openModal(prompt.id);
+                    });
+                    li.querySelector('.delete-prompt-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.deletePrompt(prompt.id);
+                    });
+
+                    this.promptList.appendChild(li);
+                });
+            }
+
+            openModal(id = null) {
+                this.editingPromptId = id;
+                if (id) {
+                    const prompt = this.prompts.find(p => p.id === id);
+                    this.modalTitle.textContent = '프롬프트 수정';
+                    this.titleInput.value = prompt.title;
+                    this.textInput.value = prompt.text;
+                } else {
+                    this.modalTitle.textContent = '새 프롬프트';
+                    this.titleInput.value = '';
+                    this.textInput.value = '';
+                }
+                this.modal.classList.add('visible');
+            }
+
+            closeModal() {
+                this.modal.classList.remove('visible');
+                this.editingPromptId = null;
+            }
+
+            savePrompt() {
+                const title = this.titleInput.value.trim();
+                const text = this.textInput.value.trim();
+
+                if (!title || !text) {
+                    alert('제목과 내용을 모두 입력해주세요.');
+                    return;
+                }
+
+                if (this.editingPromptId) {
+                    const index = this.prompts.findIndex(p => p.id === this.editingPromptId);
+                    this.prompts[index] = { ...this.prompts[index], title, text };
+                } else {
+                    const newPrompt = {
+                        id: Date.now(),
+                        title,
+                        text
+                    };
+                    this.prompts.push(newPrompt);
+                }
+
+                this.savePromptsToStorage();
+                this.renderPrompts();
+                this.closeModal();
+            }
+
+            deletePrompt(id) {
+                if (confirm('정말로 이 프롬프트를 삭제하시겠습니까?')) {
+                    this.prompts = this.prompts.filter(p => p.id !== id);
+                    this.savePromptsToStorage();
+                    this.renderPrompts();
+                }
+            }
+
+            applyPrompt(id) {
+                const prompt = this.prompts.find(p => p.id === id);
+                this.chatApp.messageInput.value = prompt.text;
+                this.chatApp.adjustTextareaHeight();
+                this.chatApp.updateSendButton();
+                this.chatApp.messageInput.focus();
+            }
+        }
+
         class ChatApp {
             constructor() {
                 this.ws = null;
@@ -408,19 +876,25 @@
                 this.initializeElements();
                 this.setupEventListeners();
                 this.connect();
+                this.promptManager = new PromptManager(this);
             }
 
             initializeElements() {
+                this.mainContainer = document.getElementById('mainContainer');
                 this.chatMessages = document.getElementById('chatMessages');
                 this.messageInput = document.getElementById('messageInput');
                 this.sendButton = document.getElementById('sendButton');
                 this.connectionStatus = document.getElementById('connectionStatus');
                 this.clearChatButton = document.getElementById('clearChatButton');
+                this.markdownSidebar = document.getElementById('markdown-sidebar');
+                this.markdownContent = document.getElementById('markdown-content');
+                this.closeMarkdownSidebar = document.getElementById('close-markdown-sidebar');
             }
 
             setupEventListeners() {
                 this.sendButton.addEventListener('click', () => this.handleSendButtonClick());
                 this.clearChatButton.addEventListener('click', () => this.clearChat());
+                this.closeMarkdownSidebar.addEventListener('click', () => this.hideMarkdownSidebar());
 
                 this.messageInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -585,12 +1059,37 @@
                     let contentDiv = this.currentAiMessage.querySelector('.message-content');
                     if (contentDiv) {
                         contentDiv.innerHTML = marked.parse(this.currentAiMessageContent);
+                        const markdownContent = this.currentAiMessageContent;
+
+                        const copyBtn = document.createElement('button');
+                        copyBtn.className = 'copy-markdown-btn';
+                        copyBtn.title = 'Copy as Markdown';
+                        copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>';
+                        
+                        copyBtn.dataset.markdown = markdownContent;
+
+                        copyBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            this.showMarkdownSidebar(e.currentTarget.dataset.markdown);
+                        });
+                        contentDiv.appendChild(copyBtn);
                     }
                 }
                 this.currentAiMessage = null;
                 this.currentAiMessageContent = '';
                 this.isAiResponding = false;
                 this.updateSendButton();
+            }
+
+            showMarkdownSidebar(content) {
+                this.markdownContent.value = content;
+                this.markdownSidebar.classList.add('visible');
+                this.mainContainer.classList.add('right-sidebar-visible');
+            }
+
+            hideMarkdownSidebar() {
+                this.markdownSidebar.classList.remove('visible');
+                this.mainContainer.classList.remove('right-sidebar-visible');
             }
 
             clearChat() {
