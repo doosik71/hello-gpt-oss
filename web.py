@@ -3,7 +3,7 @@ import json
 import asyncio
 from dotenv import load_dotenv
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 import uvicorn
 
 
@@ -57,6 +57,10 @@ class ChatWebApp:
         @self.app.get("/")
         async def get_chat_page():
             return HTMLResponse(content=self.get_html_content())
+
+        @self.app.get("/favicon.svg")
+        async def get_favicon():
+            return FileResponse("favicon.svg")
 
         @self.app.websocket("/ws")
         async def websocket_endpoint(websocket: WebSocket):
