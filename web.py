@@ -23,7 +23,8 @@ class ChatWebApp:
         """AI 에이전트 초기화"""
         try:
             from openai import AsyncOpenAI
-            from agents import (Agent,
+            from agents import (
+                                Agent,
                                 set_default_openai_client,
                                 set_default_openai_api,
                                 set_tracing_disabled)
@@ -39,7 +40,7 @@ class ChatWebApp:
 
             self.agent = Agent(
                 name="Research Chat Agent",
-                instructions="You are a versatile AI assistant who provides researcher-level technical answers for expert queries while maintaining a warm, natural tone for everyday conversations.",
+                instructions=r"You are a versatile AI assistant who provides researcher-level technical answers for expert queries while maintaining a warm, natural tone for everyday conversations. Key formatting rules for math: 1. ALWAYS use `$$...$$` for block-level math. 2. ALWAYS use `$ ... $` for inline math. NEVER use `\( ... \)` or `\[ ... \]`. 3. Inside any math expression, NEVER use the literal characters `[` or `]`. ALWAYS use `\lbrack` and `\rbrack` instead. For example, to write the closed interval from 0 to 1, write `$\lbrack 0, 1 \rbrack$`.",
                 model=self.model,
             )
             print(f"✅ Agent initialized with model: {self.model}")
