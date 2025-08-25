@@ -565,6 +565,11 @@
             box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
         }
 
+        .input-group.drag-over {
+            border-color: #4299e1;
+            background-color: #ebf8ff;
+        }
+
         #messageInput {
             flex: 1;
             border: none;
@@ -1092,7 +1097,25 @@
                 this.markdownTabButton.addEventListener('click', () => this.handleTabSwitch('markdown'));
 
                 this.uploadButton.addEventListener('click', () => this.fileInput.click());
-                this.fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
+                this.fileInput.addEventListener('change', (e) => this.handleFileUpload(e.target.files));
+
+                const inputGroup = this.messageInput.parentElement;
+                inputGroup.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    inputGroup.classList.add('drag-over');
+                });
+
+                inputGroup.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    inputGroup.classList.remove('drag-over');
+                });
+
+                inputGroup.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    inputGroup.classList.remove('drag-over');
+                    const files = e.dataTransfer.files;
+                    this.handleFileUpload(files);
+                });
 
                 this.messageInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -1346,8 +1369,7 @@
                 this.mainContainer.classList.remove('right-sidebar-visible');
             }
 
-            async handleFileUpload(event) {
-                const files = event.target.files;
+            async handleFileUpload(files) {
                 if (files.length === 0) return;
 
                 this.showFileSidebar();
@@ -1363,6 +1385,8 @@
 
                     if (file.type === 'application/pdf') {
                         fileData.textContent = await this.extractPdfText(file);
+                    } else if (file.type.startsWith('text/') || file.type === 'text/markdown' || file.type === 'text/html') {
+                        fileData.textContent = await this.extractTextFromFile(file);
                     }
 
                     this.uploadedFiles.push(fileData);
@@ -1401,6 +1425,20 @@
                         reject(error);
                     };
                     reader.readAsArrayBuffer(file);
+                });
+            }
+
+            async extractTextFromFile(file) {
+                const reader = new FileReader();
+                return new Promise((resolve, reject) => {
+                    reader.onload = (event) => {
+                        resolve(event.target.result);
+                    };
+                    reader.onerror = (error) => {
+                        console.error('File reading error:', error);
+                        reject(error);
+                    };
+                    reader.readAsText(file);
                 });
             }
 
