@@ -8,7 +8,9 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Sans+Mono&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Sans+Mono&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
     <style>
         * {
@@ -397,10 +399,15 @@
             position: relative;
         }
 
-        .copy-markdown-btn {
+        .message-buttons {
             position: absolute;
             bottom: 5px;
             right: 5px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .copy-markdown-btn {
             background: rgba(0, 0, 0, 0.1);
             border: none;
             color: #fff;
@@ -812,7 +819,7 @@
     </script>
     <script type="text/javascript" id="MathJax-script" async
         src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
-    </script>
+        </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
 </head>
@@ -827,10 +834,15 @@
         <div class="chat-container">
             <div class="chat-header">
                 <button id="left-sidebar-toggle-button" class="sidebar-toggle-button" title="Toggle left sidebar">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="3" x2="9" y2="21"></line>
+                    </svg>
                 </button>
                 <button id="clearChatButton" type="button" title="Clear" class="clear-chat-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -839,7 +851,11 @@
                 <p>의료IT융합연구실</p>
                 <div class="connection-status" id="connectionStatus"></div>
                 <button id="right-sidebar-toggle-button" class="sidebar-toggle-button" title="Toggle right sidebar">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="15" y1="3" x2="15" y2="21"></line></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="15" y1="3" x2="15" y2="21"></line>
+                    </svg>
                 </button>
             </div>
             <div class="chat-messages" id="chatMessages">
@@ -867,8 +883,11 @@
                 <div class="input-group">
                     <input type="file" id="fileInput" multiple style="display: none;">
                     <button id="uploadButton" title="Upload files">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21.44 11.05l-8.49 8.49a6 6 0 0 1-8.49-8.49l8.49-8.49a4 4 0 0 1 5.66 5.66l-8.49 8.49a2 2 0 0 1-2.83-2.83l8.49-8.49"></path>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M21.44 11.05l-8.49 8.49a6 6 0 0 1-8.49-8.49l8.49-8.49a4 4 0 0 1 5.66 5.66l-8.49 8.49a2 2 0 0 1-2.83-2.83l8.49-8.49">
+                            </path>
                         </svg>
                     </button>
                     <textarea id="messageInput" placeholder="메시지를 입력하세요..." rows="1"></textarea>
@@ -1069,7 +1088,7 @@
                 this.sendButton = document.getElementById('sendButton');
                 this.connectionStatus = document.getElementById('connectionStatus');
                 this.clearChatButton = document.getElementById('clearChatButton');
-                
+
                 this.leftSidebarToggleButton = document.getElementById('left-sidebar-toggle-button');
                 this.rightSidebarToggleButton = document.getElementById('right-sidebar-toggle-button');
 
@@ -1079,7 +1098,7 @@
 
                 this.markdownSidebar = document.getElementById('markdown-sidebar');
                 this.markdownContent = document.getElementById('markdown-content');
-                
+
                 this.fileInput = document.getElementById('fileInput');
                 this.uploadButton = document.getElementById('uploadButton');
                 this.fileSidebar = document.getElementById('file-sidebar');
@@ -1089,7 +1108,7 @@
             setupEventListeners() {
                 this.sendButton.addEventListener('click', () => this.handleSendButtonClick());
                 this.clearChatButton.addEventListener('click', () => this.clearChat());
-                
+
                 this.leftSidebarToggleButton.addEventListener('click', () => this.toggleLeftSidebar());
                 this.rightSidebarToggleButton.addEventListener('click', () => this.toggleRightSidebar());
 
@@ -1296,9 +1315,31 @@
                         }
                         const markdownContent = this.currentAiMessageContent;
 
+                        const buttonContainer = document.createElement('div');
+                        buttonContainer.className = 'message-buttons';
+
+                        const downloadBtn = document.createElement('button');
+                        downloadBtn.className = 'copy-markdown-btn';
+                        downloadBtn.title = 'Download as Markdown';
+                        downloadBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>';
+
+                        downloadBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const blob = new Blob([markdownContent], { type: 'text/markdown' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'message.md';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                        });
+                        buttonContainer.appendChild(downloadBtn);
+
                         const copyBtn = document.createElement('button');
                         copyBtn.className = 'copy-markdown-btn';
-                        copyBtn.title = 'Copy as Markdown';
+                        copyBtn.title = 'View as Markdown';
                         copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>';
                         
                         copyBtn.dataset.markdown = markdownContent;
@@ -1307,7 +1348,8 @@
                             e.stopPropagation();
                             this.showMarkdownSidebar(e.currentTarget.dataset.markdown);
                         });
-                        contentDiv.appendChild(copyBtn);
+                        buttonContainer.appendChild(copyBtn);
+                        contentDiv.appendChild(buttonContainer);
 
                         contentDiv.querySelectorAll('pre code').forEach((block) => {
                             hljs.highlightElement(block);
@@ -1393,7 +1435,7 @@
                     this.addFileToList(fileData);
                     lastFileName = fileData.name;
                 }
-                
+
                 if (lastFileName) {
                     this.handleFileSelection(lastFileName);
                 }

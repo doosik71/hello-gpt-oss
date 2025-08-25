@@ -21,24 +21,23 @@ def get_web_content(url: str) -> str:
     """
 
     try:
-        print("Reading", url)
         response = requests.get(url, timeout=10)
         response.raise_for_status()
-        
         content_type = response.headers.get("content-type", "")
-        
+
         if "html" in content_type:
             soup = BeautifulSoup(response.text, "html.parser")
-            
+
             # Remove script and style tags
             for script_or_style in soup(["script", "style"]):
                 script_or_style.decompose()
-            
+
             text = soup.get_text()
             lines = (line.strip() for line in text.splitlines())
-            chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+            chunks = (phrase.strip()
+                      for line in lines for phrase in line.split("  "))
             text = "\n".join(chunk for chunk in chunks if chunk)
-            print("Text:", text)
+
             return text
         elif "pdf" in content_type:
             with io.BytesIO(response.content) as pdf_file:
@@ -49,7 +48,6 @@ def get_web_content(url: str) -> str:
                     print("Text:", text)
                     return text
         else:
-            print("Text:", response.text)
             return response.text
 
     except requests.exceptions.RequestException as e:
