@@ -3,3 +3,5 @@ openai-agents==0.2.4
 python-dotenv
 fastapi
 uvicorn[standard]
+beautifulsoup4
+pdfplumber

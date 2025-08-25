@@ -1,10 +1,59 @@
-import os
-import json
-import asyncio
+from agents import function_tool
 from dotenv import load_dotenv
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, FileResponse
+import asyncio
+import json
+import os
+import requests
 import uvicorn
+from bs4 import BeautifulSoup
+import io
+import pdfplumber
+
+
+@function_tool
+def get_web_content(url: str) -> str:
+    """Get the web content for the given URL and return string results.
+
+    Args:
+        url: The URL.
+    """
+
+    try:
+        print("Reading", url)
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        
+        content_type = response.headers.get("content-type", "")
+        
+        if "html" in content_type:
+            soup = BeautifulSoup(response.text, "html.parser")
+            
+            # Remove script and style tags
+            for script_or_style in soup(["script", "style"]):
+                script_or_style.decompose()
+            
+            text = soup.get_text()
+            lines = (line.strip() for line in text.splitlines())
+            chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+            text = "\n".join(chunk for chunk in chunks if chunk)
+            print("Text:", text)
+            return text
+        elif "pdf" in content_type:
+            with io.BytesIO(response.content) as pdf_file:
+                with pdfplumber.open(pdf_file) as pdf:
+                    text = ""
+                    for page in pdf.pages:
+                        text += page.extract_text() + "\n"
+                    print("Text:", text)
+                    return text
+        else:
+            print("Text:", response.text)
+            return response.text
+
+    except requests.exceptions.RequestException as e:
+        return f"❌ Error fetching {url}: {e}"
 
 
 class ChatWebApp:
@@ -24,10 +73,10 @@ class ChatWebApp:
         try:
             from openai import AsyncOpenAI
             from agents import (
-                                Agent,
-                                set_default_openai_client,
-                                set_default_openai_api,
-                                set_tracing_disabled)
+                Agent,
+                set_default_openai_client,
+                set_default_openai_api,
+                set_tracing_disabled)
 
             self.openai_client = AsyncOpenAI(
                 api_key="local",
@@ -40,8 +89,9 @@ class ChatWebApp:
 
             self.agent = Agent(
                 name="Research Chat Agent",
-                instructions=r"You are a versatile AI assistant who provides researcher-level technical answers for expert queries while maintaining a warm, natural tone for everyday conversations. Key formatting rules for math: 1. ALWAYS use `$$...$$` for block-level math. 2. ALWAYS use `$ ... $` for inline math. NEVER use `\( ... \)` or `\[ ... \]`. 3. Inside any math expression, NEVER use the literal characters `[` or `]`. ALWAYS use `\lbrack` and `\rbrack` instead. For example, to write the closed interval from 0 to 1, write `$\lbrack 0, 1 \rbrack$`.",
+                instructions=r"You are a versatile AI assistant who provides researcher-level technical answers for expert queries while maintaining a warm, natural tone for everyday conversations. Key formatting rules for math: 1. ALWAYS use `$$...$$` for block-level math. 2. ALWAYS use `$ ... $` for inline math. NEVER use `\(...)` or `\[ ... \]`. 3. Inside any math expression, NEVER use the literal characters `[` or `]`. ALWAYS use `\lbrack` and `\rbrack` instead. For example, to write the closed interval from 0 to 1, write `$\lbrack 0, 1 \rbrack$`.",
                 model=self.model,
+                tools=[get_web_content],
             )
             print(f"✅ Agent initialized with model: {self.model}")
 
@@ -77,12 +127,13 @@ class ChatWebApp:
                     if data.get("type") == "user_message":
                         user_input = data.get("content", "").strip()
                         history = self.chat_histories.get(websocket, [])
-                        
+
                         if self.active_tasks.get(websocket):
                             self.active_tasks[websocket].cancel()
 
                         task = asyncio.create_task(
-                            self.stream_ai_response(websocket, user_input, history)
+                            self.stream_ai_response(
+                                websocket, user_input, history)
                         )
                         self.active_tasks[websocket] = task
 
@@ -90,7 +141,7 @@ class ChatWebApp:
                         if self.active_tasks.get(websocket):
                             self.active_tasks[websocket].cancel()
                             self.active_tasks[websocket] = None
-                    
+
                     elif data.get("type") == "clear_chat":
                         if websocket in self.chat_histories:
                             self.chat_histories[websocket] = []
@@ -145,7 +196,7 @@ class ChatWebApp:
                                 "type": "ai_response_delta",
                                 "content": delta
                             }))
-            
+
             history.append({"role": "assistant", "content": full_response})
 
             await websocket.send_text(json.dumps({
